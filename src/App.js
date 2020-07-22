@@ -76,12 +76,16 @@ function App() {
             navigator.mediaDevices.getUserMedia({ video: true })
             const devices = await navigator.mediaDevices.enumerateDevices();
             const videoDevices = devices.filter(device => device.kind === 'videoinput');
-            videoDevices.map(videoDevice => {
-                alert(JSON.stringify(videoDevice))
-            });
+            // videoDevices.map(videoDevice => {
+            //     alert(JSON.stringify(videoDevice))
+            // });
             navigator.getUserMedia(
-                { video: true },
-                stream => video.srcObject = { ...stream, deviceId: { exact: videoDevices[0].deviceId } },
+                {
+                    video: {
+                        deviceId: { exact: videoDevices[0].deviceId }
+                    }
+                },
+                stream => video.srcObject = stream,
                 err => console.error(err)
             )
             video.addEventListener('play', () => {
