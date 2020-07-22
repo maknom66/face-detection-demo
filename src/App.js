@@ -191,10 +191,10 @@ function App() {
             <header className="App-header">
                 <div className="media-container">
                     {mode == 0 &&
-                        <img id="myImg" height={800} src={imageUrl} crossOrigin="anonymous" />
+                        <img id="myImg" height={window.screen.height - 100} src={imageUrl} crossOrigin="anonymous" />
                     }
                     {mode == 1 &&
-                        <video id="video" width="720" height="560" autoPlay muted />
+                        <video id="video" width={window.screen.width} height={window.screen.height - 100} autoPlay muted webkit-playsinline />
                         // <video id="video" width="720" height="560" autoplay playsinline></video>
                     }
                     <canvas id="overlay" />
@@ -204,20 +204,17 @@ function App() {
                         <input type="radio" id="female" name="gender" defaultValue="female" checked={mode == 1 ? true : false} onClick={() => changeMode(1)} />
                         <label htmlFor="female" onClick={() => changeMode(1)}>Webcam</label><br />
                         {mode == 1 &&
-                            <div className="controls">
-                                {/* <button id="getCameraButton" on>Get camera</button> */}
-                                <select id="select" onChange={() => startVideo()}>
-                                    {
-                                        mediaDevices.map((item, index) => {
-                                            if (item.kind == 'videoinput') {
-                                                return (
-                                                    <option onClick={() => startVideo()} value={item.deviceId}>{item.label || `Camera ${index + 1}`}</option>
-                                                )
-                                            }
-                                        })
-                                    }
-                                </select>
-                            </div>
+                            <select id="select" onChange={() => startVideo()} style={{ marginLeft: '10px' }}>
+                                {
+                                    mediaDevices.map((item, index) => {
+                                        if (item.kind == 'videoinput') {
+                                            return (
+                                                <option value={item.deviceId}>{item.label || `Camera ${index + 1}`}</option>
+                                            )
+                                        }
+                                    })
+                                }
+                            </select>
                         }
                         <input type="radio" id="male" name="gender" defaultValue="male" checked={mode == 0 ? true : false} onClick={() => changeMode(0)} />
                         <label htmlFor="male" onClick={() => changeMode(0)}>Static Image</label><br />
