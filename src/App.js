@@ -69,8 +69,11 @@ function App() {
 
     const startVideo = () => {
         try {
-            navigator.mediaDevices.getUserMedia({ video: true })
             const video = document.getElementById('video')
+            video.setAttribute('autoplay', '');
+            video.setAttribute('muted', '');
+            video.setAttribute('playsinline', '');
+            navigator.mediaDevices.getUserMedia({ video: true })
             navigator.getUserMedia(
                 { video: true },
                 stream => video.srcObject = stream,
