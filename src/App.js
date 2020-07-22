@@ -8,12 +8,17 @@ function App() {
     const [mode, setMode] = useState(0)
     const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&dl=naassom-azevedo-Q_Sei-TqSlc-unsplash.jpg")
     const [videoDetectionInterval, setDetectionInterval] = useState(null)
+    const [showAgeGender, setShowAgeGender] = useState(false)
+    const [showCurrExpression, setShowCurrExpress] = useState(false)
 
     // METHODS
     async function detectFace() {
         try {
             // LOAD MODELS
             await faceapi.nets.ssdMobilenetv1.loadFromUri('/assets/models')
+            await faceapi.nets.faceExpressionNet.loadFromUri('/assets/models')
+            await faceapi.nets.faceLandmark68Net.loadFromUri('/assets/models')
+            await faceapi.nets.ageGenderNet.loadFromUri('/assets/models')
 
             // GET REFERENCE OF MEDIA
             const input = document.getElementById(mode == 0 ? 'myImg' : 'video')
@@ -25,7 +30,7 @@ function App() {
             const canvas = document.getElementById('overlay')
 
             // DETECT FACES
-            const detections = await faceapi.detectAllFaces(input)
+            const detections = await faceapi.detectAllFaces(input).withFaceLandmarks().withFaceExpressions().withAgeAndGender()
 
             // RESIZE DETECTIONS TO MATCH IMAGE DIMENSIONS
             const resizedDetections = faceapi.resizeResults(detections, displaySize)
@@ -38,6 +43,18 @@ function App() {
 
             // DRAW THE DETECTIONS
             faceapi.draw.drawDetections(canvas, resizedDetections)
+            if (showCurrExpression) {
+                faceapi.draw.drawFaceExpressions(canvas, resizedDetections)
+            }
+            if (showAgeGender) {
+                resizedDetections.forEach(detection => {
+                    const box = detection.detection.box
+                    const drawBox = new faceapi.draw.DrawBox(box, { label: Math.round(detection.age) + " year old\n" + detection.gender })
+                    drawBox.draw(canvas)
+                })
+
+
+            }
         }
         catch (err) {
             console.error(err)
@@ -98,7 +115,7 @@ function App() {
     // EFFECTS
     useEffect(() => {
         detectFace()
-    }, [imageUrl])
+    }, [imageUrl, showAgeGender, showCurrExpression])
 
     useEffect(() => {
         if (mode == 0) {
@@ -121,14 +138,22 @@ function App() {
                     }
                     <canvas id="overlay" />
                 </div>
-                <div className="controls-container">
-                    <input type="radio" id="male" name="gender" defaultValue="male" checked={mode == 0 ? true : false} onClick={() => changeMode(0)} />
-                    <label htmlFor="male" onClick={() => changeMode(0)}>Static Image</label><br />
-                    <input type="radio" id="female" name="gender" defaultValue="female" checked={mode == 1 ? true : false} onClick={() => changeMode(1)} />
-                    <label htmlFor="female" onClick={() => changeMode(1)}>Webcam</label><br />
-                    {mode == 0 &&
-                        <input type="file" onChange={onImageChange} />
-                    }
+                <div>
+                    <div className="controls-container">
+                        <input type="radio" id="female" name="gender" defaultValue="female" checked={mode == 1 ? true : false} onClick={() => changeMode(1)} />
+                        <label htmlFor="female" onClick={() => changeMode(1)}>Webcam</label><br />
+                        <input type="radio" id="male" name="gender" defaultValue="male" checked={mode == 0 ? true : false} onClick={() => changeMode(0)} />
+                        <label htmlFor="male" onClick={() => changeMode(0)}>Static Image</label><br />
+                        {mode == 0 &&
+                            <input type="file" onChange={onImageChange} />
+                        }
+                    </div>
+                    <div className="controls-container mt-0">
+                        <input type="checkbox" id="ageGender" name="ageGender" checked={showAgeGender} onClick={() => setShowAgeGender(!showAgeGender)} />
+                        <label htmlFor="ageGender" onClick={() => setShowAgeGender(!showAgeGender)}>Show age and gender</label><br />
+                        <input type="checkbox" id="expression" name="expression" checked={showCurrExpression} onClick={() => setShowCurrExpress(!showCurrExpression)} />
+                        <label htmlFor="expression" onClick={() => setShowCurrExpress(!showCurrExpression)}>Show current expression</label><br />
+                    </div>
                 </div>
             </header>
         </div>
