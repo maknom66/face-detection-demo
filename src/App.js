@@ -150,9 +150,9 @@ function App() {
                     </div>
                     <div className="controls-container mt-0">
                         <input type="checkbox" id="ageGender" name="ageGender" checked={showAgeGender} onClick={() => setShowAgeGender(!showAgeGender)} />
-                        <label htmlFor="ageGender" onClick={() => setShowAgeGender(!showAgeGender)}>Show age and gender</label><br />
+                        <label onClick={() => setShowAgeGender(!showAgeGender)}>Show age and gender</label><br />
                         <input type="checkbox" id="expression" name="expression" checked={showCurrExpression} onClick={() => setShowCurrExpress(!showCurrExpression)} />
-                        <label htmlFor="expression" onClick={() => setShowCurrExpress(!showCurrExpression)}>Show current expression</label><br />
+                        <label onClick={() => setShowCurrExpress(!showCurrExpression)}>Show current expression</label><br />
                     </div>
                 </div>
             </header>
