@@ -194,7 +194,7 @@ function App() {
                         <img id="myImg" height={window.screen.height - 100} src={imageUrl} crossOrigin="anonymous" />
                     }
                     {mode == 1 &&
-                        <video id="video" width={window.screen.width} height={window.screen.height - 100} autoPlay muted webkit-playsinline />
+                        <video id="video" width={window.screen.width} height={window.screen.height - 50} autoPlay muted playsinline />
                         // <video id="video" width="720" height="560" autoplay playsinline></video>
                     }
                     <canvas id="overlay" />
