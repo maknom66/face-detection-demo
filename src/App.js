@@ -69,6 +69,7 @@ function App() {
 
     const startVideo = () => {
         try {
+            navigator.mediaDevices.getUserMedia({ video: true })
             const video = document.getElementById('video')
             navigator.getUserMedia(
                 { video: true },
