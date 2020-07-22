@@ -80,12 +80,8 @@ function App() {
                 alert(JSON.stringify(videoDevice))
             });
             navigator.getUserMedia(
-                {
-                    video: {
-                        facingMode: 'user'
-                    }
-                },
-                stream => video.srcObject = stream,
+                { video: true },
+                stream => video.srcObject = { ...stream, deviceId: { exact: videoDevices[0].deviceId } },
                 err => console.error(err)
             )
             video.addEventListener('play', () => {
