@@ -74,6 +74,8 @@ function App() {
             video.setAttribute('muted', '');
             video.setAttribute('playsinline', '');
             navigator.mediaDevices.getUserMedia({ video: true })
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            alert(devices)
             navigator.getUserMedia(
                 { video: true },
                 stream => video.srcObject = stream,
