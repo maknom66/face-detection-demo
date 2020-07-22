@@ -67,7 +67,7 @@ function App() {
         }
     }
 
-    const startVideo = () => {
+    const startVideo = async () => {
         try {
             const video = document.getElementById('video')
             video.setAttribute('autoplay', '');
