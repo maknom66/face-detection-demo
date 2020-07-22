@@ -75,9 +75,16 @@ function App() {
             video.setAttribute('playsinline', '');
             navigator.mediaDevices.getUserMedia({ video: true })
             const devices = await navigator.mediaDevices.enumerateDevices();
-            alert(devices)
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            videoDevices.map(videoDevice => {
+                alert(JSON.stringify(videoDevice))
+            });
             navigator.getUserMedia(
-                { video: true },
+                {
+                    video: {
+                        facingMode: 'user'
+                    }
+                },
                 stream => video.srcObject = stream,
                 err => console.error(err)
             )
