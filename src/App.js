@@ -10,6 +10,7 @@ function App() {
     const [videoDetectionInterval, setDetectionInterval] = useState(null)
     const [showAgeGender, setShowAgeGender] = useState(false)
     const [showCurrExpression, setShowCurrExpress] = useState(false)
+    const [mediaDevices, setMediaDevices] = useState([])
 
     // METHODS
     async function detectFace() {
@@ -67,27 +68,73 @@ function App() {
         }
     }
 
+    const stopMediaTracks = (stream) => {
+        stream.getTracks().forEach(track => {
+            track.stop();
+        });
+    }
+
+    const gotDevices = (mediaDevices) => {
+        const select = document.getElementById('select');
+        select.innerHTML = '';
+        select.appendChild(document.createElement('option'));
+        let count = 1;
+        mediaDevices.forEach(mediaDevice => {
+            if (mediaDevice.kind === 'videoinput') {
+                const option = document.createElement('option');
+                option.value = mediaDevice.deviceId;
+                const label = mediaDevice.label || `Camera ${count++}`;
+                const textNode = document.createTextNode(label);
+                option.appendChild(textNode);
+                select.appendChild(option);
+            }
+        });
+    }
+
     const startVideo = async () => {
         try {
+            let currentStream;
             const video = document.getElementById('video')
-            video.setAttribute('autoplay', '');
-            video.setAttribute('muted', '');
-            video.setAttribute('playsinline', '');
-            navigator.mediaDevices.getUserMedia({ video: true })
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(device => device.kind === 'videoinput');
-            // videoDevices.map(videoDevice => {
-            //     alert(JSON.stringify(videoDevice))
-            // });
-            navigator.getUserMedia(
-                {
-                    video: {
-                        deviceId: { exact: videoDevices[0].deviceId }
-                    }
-                },
-                stream => video.srcObject = stream,
-                err => console.error(err)
-            )
+            const select = document.getElementById('select');
+            // alert(select.value)
+            // const devices = await navigator.mediaDevices.enumerateDevices();
+            // const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            // navigator.getUserMedia(
+            //     {
+            //         video: {
+            //             deviceId: { exact: videoDevices[0].deviceId }
+            //         }
+            //     },
+            //     stream => video.srcObject = stream,
+            //     err => console.error(err)
+            // )
+
+            if (typeof currentStream !== 'undefined') {
+                stopMediaTracks(currentStream);
+            }
+            const videoConstraints = {};
+            if (select.value === '') {
+                videoConstraints.facingMode = 'environment';
+            } else {
+                videoConstraints.deviceId = { exact: select.value };
+            }
+            const constraints = {
+                video: videoConstraints,
+                audio: false
+            };
+
+            navigator.mediaDevices
+                .getUserMedia(constraints)
+                .then(stream => {
+                    currentStream = stream;
+                    video.srcObject = stream;
+                    return navigator.mediaDevices.enumerateDevices();
+                })
+                .then(gotDevices)
+                .catch(error => {
+                    console.error(error);
+                });
+
             video.addEventListener('play', () => {
                 let detectionInterval = setInterval(() => {
                     console.log('Tracking face in video')
@@ -148,6 +195,7 @@ function App() {
                     }
                     {mode == 1 &&
                         <video id="video" width="720" height="560" autoPlay muted />
+                        // <video id="video" width="720" height="560" autoplay playsinline></video>
                     }
                     <canvas id="overlay" />
                 </div>
@@ -155,6 +203,22 @@ function App() {
                     <div className="controls-container">
                         <input type="radio" id="female" name="gender" defaultValue="female" checked={mode == 1 ? true : false} onClick={() => changeMode(1)} />
                         <label htmlFor="female" onClick={() => changeMode(1)}>Webcam</label><br />
+                        {mode == 1 &&
+                            <div className="controls">
+                                {/* <button id="getCameraButton" on>Get camera</button> */}
+                                <select id="select" onChange={() => startVideo()}>
+                                    {
+                                        mediaDevices.map((item, index) => {
+                                            if (item.kind == 'videoinput') {
+                                                return (
+                                                    <option onClick={() => startVideo()} value={item.deviceId}>{item.label || `Camera ${index + 1}`}</option>
+                                                )
+                                            }
+                                        })
+                                    }
+                                </select>
+                            </div>
+                        }
                         <input type="radio" id="male" name="gender" defaultValue="male" checked={mode == 0 ? true : false} onClick={() => changeMode(0)} />
                         <label htmlFor="male" onClick={() => changeMode(0)}>Static Image</label><br />
                         {mode == 0 &&
