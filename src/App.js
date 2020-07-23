@@ -191,7 +191,8 @@ function App() {
                 }
                 {mode == 1 &&
                     <div className="p-rel">
-                        <video id="video" width={`${window.screen.width >= 768 ? (window.screen.width / 100) * 30 : window.screen.width}px`} height={`${(window.screen.height / 100) * 60}px`} autoPlay playsinline></video>
+                        {/* <video id="video"  autoPlay playsinline></video> */}
+                        <video id="video" width={`${window.screen.width >= 768 ? (window.screen.width / 100) * 30 : window.screen.width}px`} height={`${(window.screen.height / 100) * 60}px`} autoplay="" playsinline=""></video>
                         <canvas id="overlay" style={{ top: '50%', left: '0px', right: '0px', bottom: '0px', transform: 'translateY(-50%)' }} />
                     </div>
                 }
