@@ -18,9 +18,9 @@ function App() {
         try {
             // LOAD MODELS
             await faceapi.nets.ssdMobilenetv1.loadFromUri('/assets/models')
-            await faceapi.nets.faceExpressionNet.loadFromUri('/assets/models')
-            await faceapi.nets.faceLandmark68Net.loadFromUri('/assets/models')
-            await faceapi.nets.ageGenderNet.loadFromUri('/assets/models')
+            // await faceapi.nets.faceExpressionNet.loadFromUri('/assets/models')
+            // await faceapi.nets.faceLandmark68Net.loadFromUri('/assets/models')
+            // await faceapi.nets.ageGenderNet.loadFromUri('/assets/models')
 
             // GET REFERENCE OF MEDIA
             const input = document.getElementById(mode == 0 ? 'myImg' : 'video')
@@ -39,7 +39,8 @@ function App() {
             const canvas = document.getElementById('overlay')
 
             // DETECT FACES
-            const detections = await faceapi.detectAllFaces(input).withFaceLandmarks().withFaceExpressions().withAgeAndGender()
+            const detections = await faceapi.detectAllFaces(input)
+            // const detections = await faceapi.detectAllFaces(input).withFaceLandmarks().withFaceExpressions().withAgeAndGender()
 
             // RESIZE DETECTIONS TO MATCH IMAGE DIMENSIONS
             const resizedDetections = faceapi.resizeResults(detections, displaySize)
@@ -213,6 +214,7 @@ function App() {
                                     Select Available Camera
                                 </label>
                                 <select id="select" onChange={() => startVideo()}>
+                                    <option></option>
                                     {
                                         mediaDevices.map((item, index) => {
                                             if (item.kind == 'videoinput') {
@@ -240,7 +242,7 @@ function App() {
                             </div>
                         }
                     </div>
-                    <div className="row mt-2 ml-0">
+                    {/* <div className="row mt-2 ml-0">
                         <div className="col-md-5 col-12 pr-0">
                             <div className="form-check">
                                 <input className="form-check-input" type="checkbox" id="ageGender" checked={showAgeGender} onClick={() => setShowAgeGender(!showAgeGender)} />
@@ -257,7 +259,7 @@ function App() {
                                 </label>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </header>
         </div>
