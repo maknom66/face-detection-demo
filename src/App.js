@@ -8,6 +8,7 @@ function App() {
     const [mode, setMode] = useState(0)
     const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&dl=naassom-azevedo-Q_Sei-TqSlc-unsplash.jpg")
     const [videoDetectionInterval, setDetectionInterval] = useState(null)
+    const [videoDims, setVideoDims] = useState(null)
     const [showAgeGender, setShowAgeGender] = useState(false)
     const [showCurrExpression, setShowCurrExpress] = useState(false)
     const [mediaDevices, setMediaDevices] = useState([])
@@ -25,7 +26,14 @@ function App() {
             const input = document.getElementById(mode == 0 ? 'myImg' : 'video')
 
             // GET MEDIA DIMENSIONS
-            const displaySize = { width: input.width, height: input.height }
+            let displaySize = {}
+            if (mode == 0) {
+                displaySize = { width: input.width, height: input.height }
+            }
+            else if (mode == 1) {
+                let videoDimRatio = videoDims.width / videoDims.height
+                displaySize = { width: input.width, height: input.width / videoDimRatio }
+            }
 
             // GET ALREADY ADDED CANVAS TO SHOW DETECTIONS
             const canvas = document.getElementById('overlay')
@@ -74,40 +82,11 @@ function App() {
         });
     }
 
-    const gotDevices = (mediaDevices) => {
-        const select = document.getElementById('select');
-        select.innerHTML = '';
-        select.appendChild(document.createElement('option'));
-        let count = 1;
-        mediaDevices.forEach(mediaDevice => {
-            if (mediaDevice.kind === 'videoinput') {
-                const option = document.createElement('option');
-                option.value = mediaDevice.deviceId;
-                const label = mediaDevice.label || `Camera ${count++}`;
-                const textNode = document.createTextNode(label);
-                option.appendChild(textNode);
-                select.appendChild(option);
-            }
-        });
-    }
-
     const startVideo = async () => {
         try {
             let currentStream;
             const video = document.getElementById('video')
             const select = document.getElementById('select');
-            // alert(select.value)
-            // const devices = await navigator.mediaDevices.enumerateDevices();
-            // const videoDevices = devices.filter(device => device.kind === 'videoinput');
-            // navigator.getUserMedia(
-            //     {
-            //         video: {
-            //             deviceId: { exact: videoDevices[0].deviceId }
-            //         }
-            //     },
-            //     stream => video.srcObject = stream,
-            //     err => console.error(err)
-            // )
 
             if (typeof currentStream !== 'undefined') {
                 stopMediaTracks(currentStream);
@@ -128,20 +107,16 @@ function App() {
                 .then(stream => {
                     currentStream = stream;
                     video.srcObject = stream;
+                    let { width, height } = stream.getTracks()[0].getSettings();
+                    setVideoDims({ width, height })
                     return navigator.mediaDevices.enumerateDevices();
                 })
-                .then(gotDevices)
+                .then(devices => {
+                    setMediaDevices(devices)
+                })
                 .catch(error => {
                     console.error(error);
                 });
-
-            video.addEventListener('play', () => {
-                let detectionInterval = setInterval(() => {
-                    console.log('Tracking face in video')
-                    detectFace()
-                }, 100)
-                setDetectionInterval(detectionInterval)
-            })
         }
         catch (err) {
             console.error(err)
@@ -186,47 +161,101 @@ function App() {
         }
     }, [mode])
 
+    useEffect(() => {
+        if (videoDims) {
+            const video = document.getElementById('video')
+            video.addEventListener('play', () => {
+                let detectionInterval = setInterval(() => {
+                    console.log('Tracking face in video')
+                    detectFace()
+                }, 100)
+                setDetectionInterval(detectionInterval)
+            })
+        }
+    }, [videoDims])
+
     return (
         <div className="App">
             <header className="App-header">
-                <div className="media-container">
-                    {mode == 0 &&
-                        <img id="myImg" height={window.screen.height - 100} src={imageUrl} crossOrigin="anonymous" />
-                    }
-                    {mode == 1 &&
-                        <video id="video" width={window.screen.width} height={window.screen.height - 50} autoPlay muted playsinline />
-                        // <video id="video" width="720" height="560" autoplay playsinline></video>
-                    }
-                    <canvas id="overlay" />
-                </div>
-                <div>
-                    <div className="controls-container">
-                        <input type="radio" id="female" name="gender" defaultValue="female" checked={mode == 1 ? true : false} onClick={() => changeMode(1)} />
-                        <label htmlFor="female" onClick={() => changeMode(1)}>Webcam</label><br />
-                        {mode == 1 &&
-                            <select id="select" onChange={() => startVideo()} style={{ marginLeft: '10px' }}>
-                                {
-                                    mediaDevices.map((item, index) => {
-                                        if (item.kind == 'videoinput') {
-                                            return (
-                                                <option value={item.deviceId}>{item.label || `Camera ${index + 1}`}</option>
-                                            )
-                                        }
-                                    })
+                {mode == 0 &&
+                    <div className="row child-hori-center">
+                        <div className="col-md-4 col-12" >
+                            <div className="p-rel">
+                                {mode == 0 &&
+                                    <img id="myImg" width={'100%'} src={imageUrl} crossOrigin="anonymous" />
                                 }
-                            </select>
+                                <canvas id="overlay" style={{ top: '0px', left: '0px' }} />
+                            </div>
+                        </div>
+                    </div>
+                }
+                {mode == 1 &&
+                    <div className="p-rel">
+                        <video id="video" width={`${window.screen.width >= 768 ? (window.screen.width / 100) * 30 : window.screen.width}px`} height={`${(window.screen.height / 100) * 60}px`} autoPlay playsinline></video>
+                        <canvas id="overlay" style={{ top: '50%', left: '0px', right: '0px', bottom: '0px', transform: 'translateY(-50%)' }} />
+                    </div>
+                }
+                <div>
+                    <div className="row mt-3 ml-0">
+                        <div className="col-md-3 col-12 pr-0">
+                            <div className="form-check">
+                                <input className="form-check-input" type="radio" name="detectionOptions" id="webcam" defaultValue="option1" checked={mode == 1 ? true : false} onClick={() => changeMode(1)} />
+                                <label className="form-check-label" htmlFor="webcam">
+                                    Webcam
+                                </label>
+                            </div>
+                        </div>
+                        {mode == 1 &&
+                            <div className="col-md-6 col-12 pr-0">
+                                {/* <div className="form-check"> */}
+                                <label className="form-check-label" htmlFor="select">
+                                    Select Available Camera
+                                </label>
+                                <select id="select" onChange={() => startVideo()}>
+                                    {
+                                        mediaDevices.map((item, index) => {
+                                            if (item.kind == 'videoinput') {
+                                                return (
+                                                    <option value={item.deviceId}>{item.label || `Camera ${index + 1}`}</option>
+                                                )
+                                            }
+                                        })
+                                    }
+                                </select>
+                                {/* </div> */}
+                            </div>
                         }
-                        <input type="radio" id="male" name="gender" defaultValue="male" checked={mode == 0 ? true : false} onClick={() => changeMode(0)} />
-                        <label htmlFor="male" onClick={() => changeMode(0)}>Static Image</label><br />
+                        <div className="col-md-3 col-12 pr-0">
+                            <div className="form-check">
+                                <input className="form-check-input" type="radio" name="detectionOptions" id="staticImage" defaultValue="option1" checked={mode == 0 ? true : false} onClick={() => changeMode(0)} />
+                                <label className="form-check-label" htmlFor="staticImage">
+                                    Static Image
+                                </label>
+                            </div>
+                        </div>
                         {mode == 0 &&
-                            <input type="file" onChange={onImageChange} />
+                            <div className="col-md-3 col-12 pr-0">
+                                <input type="file" onChange={onImageChange} />
+                            </div>
                         }
                     </div>
-                    <div className="controls-container mt-0">
-                        <input type="checkbox" id="ageGender" name="ageGender" checked={showAgeGender} onClick={() => setShowAgeGender(!showAgeGender)} />
-                        <label onClick={() => setShowAgeGender(!showAgeGender)}>Show age and gender</label><br />
-                        <input type="checkbox" id="expression" name="expression" checked={showCurrExpression} onClick={() => setShowCurrExpress(!showCurrExpression)} />
-                        <label onClick={() => setShowCurrExpress(!showCurrExpression)}>Show current expression</label><br />
+                    <div className="row mt-2 ml-0">
+                        <div className="col-md-5 col-12 pr-0">
+                            <div className="form-check">
+                                <input className="form-check-input" type="checkbox" id="ageGender" checked={showAgeGender} onClick={() => setShowAgeGender(!showAgeGender)} />
+                                <label className="form-check-label" htmlFor="ageGender">
+                                    Show age and gender
+                                </label>
+                            </div>
+                        </div>
+                        <div className="col-md-5 col-12 pr-0">
+                            <div className="form-check">
+                                <input className="form-check-input" type="checkbox" id="expression" checked={showCurrExpression} onClick={() => setShowCurrExpress(!showCurrExpression)} />
+                                <label className="form-check-label" htmlFor="expression">
+                                    Show current expression
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
