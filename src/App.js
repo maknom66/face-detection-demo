@@ -208,27 +208,29 @@ function App() {
                             </div>
                         </div>
                         {mode == 1 &&
-                            <div className="col-md-6 col-12 pr-0">
-                                {/* <div className="form-check"> */}
-                                <label className="form-check-label" htmlFor="select">
-                                    Select Available Camera
+                            <>
+                                <div className="col-12 pr-0">
+                                    <label className="form-check-label" htmlFor="select">
+                                        Select Available Camera
                                 </label>
-                                <select id="select" onChange={() => startVideo()}>
-                                    <option></option>
-                                    {
-                                        mediaDevices.map((item, index) => {
-                                            if (item.kind == 'videoinput') {
-                                                return (
-                                                    <option value={item.deviceId}>{item.label || `Camera ${index + 1}`}</option>
-                                                )
-                                            }
-                                        })
-                                    }
-                                </select>
-                                {/* </div> */}
-                            </div>
+                                </div>
+                                <div className="col-md-2 col-12">
+                                    <select id="select" className="select" onChange={() => startVideo()}>
+                                        <option></option>
+                                        {
+                                            mediaDevices.map((item, index) => {
+                                                if (item.kind == 'videoinput') {
+                                                    return (
+                                                        <option value={item.deviceId}>{item.label || `Camera ${index + 1}`}</option>
+                                                    )
+                                                }
+                                            })
+                                        }
+                                    </select>
+                                </div>
+                            </>
                         }
-                        <div className="col-md-3 col-12 pr-0">
+                        <div className="col-12 pr-0 mt-10">
                             <div className="form-check">
                                 <input className="form-check-input" type="radio" name="detectionOptions" id="staticImage" defaultValue="option1" checked={mode == 0 ? true : false} onClick={() => changeMode(0)} />
                                 <label className="form-check-label" htmlFor="staticImage">
@@ -237,7 +239,7 @@ function App() {
                             </div>
                         </div>
                         {mode == 0 &&
-                            <div className="col-md-3 col-12 pr-0">
+                            <div className="col-12 pr-0">
                                 <input type="file" onChange={onImageChange} />
                             </div>
                         }
